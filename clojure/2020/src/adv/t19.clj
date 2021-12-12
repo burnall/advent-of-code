@@ -19,8 +19,9 @@
     {:rules (->> rules-str
                  (split-lines)
                  (map parse-rule)
-                 (sort-by :n)
-                 (mapv :rule))
+                 (map (juxt :n :rule))
+                 (into {}))
+    
      :msgs (split-lines msgs-str)}))  
 
 (def input
@@ -28,4 +29,62 @@
        (slurp)
        (parse-input)))
 
-(defn make-struct [rules])
+(defn get-terms [rules]
+  (->> rules
+       (filter (fn [[_ v]] (string? v)))
+       (into {})))
+
+(defn can-be-trimmed [non-trimmed rule] 
+  (prn 123 non-trimmed rule)
+  (->> rule
+       (flatten)
+       (every? (comp not non-trimmed)))) 
+
+(defn comb-two [xs ys]
+  (for [x xs, y ys]
+     (str x y)))
+
+(defn combs [line]
+  (prn "combs" line 33)
+  (reduce comb-two
+          [""]
+          line))
+
+(defn trim-line [trimmed line]
+  (prn 333 trimmed line)
+  (->> line
+       (map trimmed)
+       (combs)))
+
+(defn trim-rule [trimmed rule]
+  ;(prn 333 trimmed rule)
+  (->> rule 
+       (map (partial trim-line trimmed))
+       (apply concat)))
+
+(defn trim-rules [rules trimmed non-trimmed]
+  (->> non-trimmed
+       (filter (partial can-be-trimmed non-trimmed)) 
+       (map rules)
+       (map (partial trim-rule trimmed))))
+
+(defn expand [rules trimmed non-trimmed i]
+  (if (zero? i) 
+    trimmed
+    (let [new-trimmed (trim-rules rules trimmed non-trimmed)]
+      ;(prn 444 new-trimmed) 
+      (if (empty? new-trimmed)
+        trimmed
+        (recur rules 
+               (merge trimmed new-trimmed)
+               (clojure.set/union non-trimmed (keys new-trimmed))
+               (dec i))))))
+
+(defn solve []
+  (let [rules (:rules adv.t19/input)
+        terms (get-terms rules)]
+    (expand rules 
+            (into {} (map (fn [[k v]] [k [v]]) terms))
+            (clojure.set/difference (set (keys rules)) (set (keys terms)))
+            1)))
+            
