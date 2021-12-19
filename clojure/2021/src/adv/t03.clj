@@ -55,7 +55,6 @@
             xs)))
 
 (defn find-rating [xs idx most-common?]
-  (prn 222 idx xs)
   (if (< (count xs) 2)
      (first xs)
      (recur (filter-for-rating xs idx most-common?)
