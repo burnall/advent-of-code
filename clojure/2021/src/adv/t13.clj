@@ -37,3 +37,22 @@
 
 (defn f []
   (solve input))
+
+
+; Part 2
+
+(defn foldy [points d]
+  (->> points
+       (reduce (fn [ps [x y]]
+                 (conj ps [x (if (< y d) y (+ d d (- y)))]))
+               #{})))
+
+(defn solve2 [{:keys [points folds]}]
+  (->> folds
+       (reduce (fn [ps {:keys [x? d]}]
+                 ((if x? foldx foldy) ps d))  
+               points)))
+
+(defn f2[]
+  (solve2 input))
+
