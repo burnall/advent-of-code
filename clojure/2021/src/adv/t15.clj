@@ -7,20 +7,20 @@
        (split-lines)
        (mapv (partial mapv (comp parse-int str)))))
 
-(defn get-infinities [maxy]
-  (mapv (fn [_] (vec (repeat maxy Integer/MAX_VALUE)))
-        (range maxy)))
+(defn get-infinities [size]
+  (mapv (fn [_] (vec (repeat size Integer/MAX_VALUE)))
+        (range size)))
 
 (def grads [[-1 0] [0 -1] [0 1] [1 0]])
 
 (defn solve [cmap] 
-  (let [maxy (count cmap)
-        initial-sol (assoc-in (get-infinities maxy) [0 0] 0)
+  (let [size (count cmap)
+        initial-sol (assoc-in (get-infinities size) [0 0] 0)
         nb (fn [p blacklist] 
              (->> grads
                   (map (partial map + p))
                   (filter (fn [[x y]] 
-                            (and (> maxy x -1) (> maxy y -1)
+                            (and (> size x -1) (> size y -1)
                                  (not (blacklist [x y])))))))
         f (fn [m x y] (get-in m [y x]))
         iter (fn [sol active-ps closed-ps] 
@@ -45,4 +45,23 @@
 (defn f []
   (solve input))
 
-; Part 2
+
+; Part 2. Very slow though right.
+
+(defn repeat-cmap [cmap n]
+  (let [size (count cmap)
+        rng (range (* size n))]
+    (mapv (fn [y]
+            (mapv (fn [x]
+                    (let [el (get-in cmap [(mod y size) (mod x size)])
+                          nx (quot x size)
+                          ny (quot y size)]
+                      (+ 1 (mod (+ el nx ny -1) 9))))  
+                  rng))
+          rng)))
+
+(defn f2 []
+  (let [cmap (repeat-cmap input 5)
+        lst (dec (count cmap))]
+    ;(solve cmap)))    
+    (get-in (solve cmap) [lst lst])))
