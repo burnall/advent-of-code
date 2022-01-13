@@ -94,3 +94,30 @@
 
 (defn f []
   (solve input))
+
+
+; Part 2
+
+(def operations 
+  {0 +
+   1 *
+   2 min
+   3 max
+   5 (comp {false 0, true 1} >)
+   6 (comp {false 0, true 1} <)
+   7 (comp {false 0, true 1} =)})
+
+(defn compute [{:keys [type-id subpackets value]}]
+  (if (= 4 type-id)
+    (to-number value)
+    (apply (operations type-id) (map compute subpackets))))           
+
+
+(defn solve2 [s]
+  (->> s
+       (parse-input)
+       (parse-packet)
+       (compute)))
+
+(defn f2 []
+  (solve2 input))
