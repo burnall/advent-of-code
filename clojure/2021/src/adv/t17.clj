@@ -42,15 +42,19 @@
          (into #{})
          (sort-by -)))) 
 
-(defn get-vy [ymin ymax xsteps]
+(defn get-vys [ymin ymax xsteps]
   (let [f (fn [y]
             (+ (/ y xsteps)
                (/ (dec xsteps) 2)))
         v1 (f ymin)
         v2 (f ymax)
-        vmin (Math/ceil (min v1 v2))
+        vmin (int (Math/ceil (min v1 v2)))
         vmax (int (Math/floor (max v1 v2)))]
-    (when (>= vmax vmin) vmax)))
+    (when (>= vmax vmin) [vmin vmax])))
+
+(defn get-vy [ymin ymax xsteps]
+  (when-let [[_ vmax] (get-vys ymin ymax xsteps)]
+    vmax))
 
 (defn solve [[xmin xmax] [ymin ymax]]
   (->> (get-all-xsteps xmin xmax (* 2 (- ymin)))
@@ -62,3 +66,32 @@
 
 (defn f []
   (solve [124 174] [-123 -86]))
+
+
+; Part 2
+
+(defn get-xmap [xmin xmax max-steps]
+  (let [[vmin vmax] (get-vx-range xmin xmax)]
+    (->> (range vmin (inc vmax))
+         (map (fn [vx] [vx (get-xsteps xmin xmax max-steps vx)]))
+         (reduce (fn [xmap [vx steps]]
+                   (reduce (fn [xmap step]
+                             (update xmap step (fn [v] (conj (or v []) vx))))
+                           xmap
+                           steps))
+                 {}))))
+
+(defn cart-product [xrange yrange]
+  (for [x xrange
+        y yrange]
+    [x y]))    
+
+(defn solve2 [[xmin xmax] [ymin ymax]]
+  (->> (get-xmap xmin xmax (* 2 (- ymin)))
+       (mapcat (fn [[xsteps vxs]]
+                 (when-let [[vmin vmax] (get-vys ymin ymax xsteps)]
+                   (cart-product vxs (range vmin (inc vmax))))))
+       (into #{})))
+
+(defn f2 []
+  (solve2 [124 174] [-123 -86]))
