@@ -9,7 +9,7 @@
 (defn split-lines [text]
   (split text #"\n"))
 
-(defn is-digit [c]
+(defn digit? [c]
   (and (>= (int c) (int \0)) (<= (int c) (int \9))))
 
 (defn- insert-at [xs i x]
