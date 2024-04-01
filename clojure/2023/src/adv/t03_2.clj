@@ -32,3 +32,13 @@
          (filter #(some (partial adjacent? %) ss))
          (map :val)
          (reduce +))))
+
+(defn part2 [m]
+  (let [ns (find-numbers m)
+        ss (find-symbols m)]
+    (->> ss
+         (mapcat (fn [symbol]
+                    (let [numbers (filter #(adjacent? % symbol) ns)]
+                      (when (= (count numbers) 2)
+                         [(reduce * (map :val numbers))]))))
+         (reduce +))))
