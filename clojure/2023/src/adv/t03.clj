@@ -48,6 +48,7 @@
           (not= ((m y) x) \.))
         (get-neighbours idx m)))
 
+
 (defn find-numbers [m]
   (mapcat (fn [[row v]]
             (->> v
@@ -60,3 +61,40 @@
   (->> input
        (find-numbers)
        (apply +)))
+
+; Part 2
+
+(defn get-symbol-idxs [v]
+  (->> v
+       (map-indexed vector)
+       (filter (fn [[idx ch]] (and (not (digit? ch)) (not= ch \.))))
+       (map first)))
+
+
+(def shifts [[-1 0] [-1 -1] [-1 1] 
+             [0 -1] [0 1]
+             [1 -1] [1 0] [1 1]])
+
+(defn get-adjacent-idxs [m [x y]]
+  (let [maxx (count (m 0))
+        maxy (count m)]
+    (->> shifts
+         (map (partial map + [x y]))
+         (filter (fn [[x' y']] 
+                   (and (>= x' 0) (< x' maxx) (>= y' 0) (< y' maxy)))))))
+
+(defn get-neighbour-numbers [m number-idxs [x y]]
+  (->> [x y]
+       (get-adjacent-idxs m)
+       (filter (fn [[x' y']] 
+                  (digit? ((m y') x'))))
+       (filter (fn [[x' y]]
+                 (some #(and )
+                       number-idxs)
+
+(defn get-gears [m]
+  (let [number-idxs (mapcat find-number-idxs m)
+  
+
+
+
