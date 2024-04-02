@@ -1,5 +1,5 @@
 (ns adv.t03-2
-  (:require [adv.util :refer [split-lines digit? re-pos]]))
+  (:require [adv.util :refer [split-lines re-pos]]))
 
 (def input
   (->> "data/t03.txt"
