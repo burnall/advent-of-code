@@ -29,3 +29,18 @@
   (->> cards
        (map worth)
        (reduce +)))
+
+(defn add-card [parsed-cards card]
+  (let [{:keys [no winning-numbers numbers]} card
+        cnt (inc (get parsed-cards no 0))
+        winner-cnt (count (filter winning-numbers numbers))]
+    (reduce (fn [m idx] (update m (+ idx 1 no) #(+ cnt (or % 0))))   
+            (assoc parsed-cards no cnt)
+            (range winner-cnt))))
+
+
+(defn part2 [cards]
+  (->> cards 
+       (reduce add-card {})
+       (vals)
+       (reduce + 0)))
