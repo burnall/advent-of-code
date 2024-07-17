@@ -42,3 +42,48 @@
        (map (partial domaps maps))
        (apply min)))
 
+
+; Part 2
+
+; Does not work - ineffective for big ranges 
+(defn part2 [{:keys [seeds maps]}]
+  (->> seeds
+       (partition 2)
+       (mapcat (fn [[start len]] (range start (+ start len))))
+       (map (partial domaps maps))
+       (apply min)))
+
+(def BIG 92233720368547758) ; But smaller than max long
+
+(defn pad-mappings [m]
+  (let [sorted (vec (sort-by second m))
+        minv (second (first sorted))
+        [_ max-start max-len] (peek sorted)
+        maxv (+ max-start max-len)] 
+    (->> sorted
+         (#(if (<= minv 0) % (cons (list 0 0 minv) %)))
+         (#(if (<= BIG maxv) % (concat % [(list maxv maxv (- BIG maxv))]))))))
+
+(def input2
+  {:seeds (->> (:seeds input)
+               (partition 2)
+               (map (fn [[start len]] [start (+ start len)])))
+   :maps (map pad-mappings (:maps input))})
+
+(defn intersect [leftA rightA leftB rightB]
+  (cond (<= leftB leftA rightB) [leftA (min rightA rightB)]
+        (<= leftA leftB rightA) [leftB (min rightA rightB)]))
+
+(defn domaps2 [spans ms]
+  (for [[dst src len] ms 
+        [leftA rightA] spans
+        :let [common (intersect leftA rightA src (+ src len))]
+        :when common]
+    (map (partial + dst (- src)) common)))
+
+(defn part2' [{:keys [seeds maps]}]
+  (->> maps
+       (reduce domaps2 seeds)
+       (map first)
+       (apply min)))
+
