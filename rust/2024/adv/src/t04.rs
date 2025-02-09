@@ -37,3 +37,31 @@ pub fn task1() {
     }
     println!("Answer is {:?}", cnt);
 }
+
+fn check_xmas(matrix: &Vec<Vec<char>>, p: (usize, usize)) -> bool {
+    let x = p.0 as i32;
+    let y = p.1 as i32;
+    let a = matrix[(y - 1) as usize][(x - 1) as usize];
+    let b = matrix[(y - 1) as usize][(x + 1) as usize];
+    let c = matrix[(y + 1) as usize][(x + 1) as usize];
+    let d = matrix[(y + 1) as usize][(x - 1) as usize];
+    (a == 'M' && c == 'S' || a == 'S' && c == 'M') &&
+    (b == 'M' && d == 'S' || b == 'S' && d == 'M')
+
+}    
+
+pub fn task2() {
+    let matrix = parse_input("../data/t04.txt");
+    let mut cnt = 0;
+
+    for x in 1..matrix[0].len() - 1 {
+        for y in 1..matrix.len() - 1 {
+            if matrix[y][x] == 'A' {
+                if check_xmas(&matrix, (x, y)) {
+                    cnt += 1;
+                }
+            } 
+        }    
+    }
+    println!("Answer is {:?}", cnt);
+}

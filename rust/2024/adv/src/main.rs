@@ -1,5 +1,5 @@
 use adv::t04;
 
 fn main() {
-    t04::task1();
+    t04::task2();
 }
