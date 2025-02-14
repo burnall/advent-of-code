@@ -16,8 +16,8 @@ pub fn perm(a: &mut [i32], n: usize) {
 }
 
 fn main() {
-    let mut a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]; 
-    k_perm(&mut a, 4    , 10, &|a| println!("{:?}", a));
+    let mut a = [1, 2, 3, 4, 5];//, 5, 6, 7, 8, 9, 0]; 
+    k_perm(&mut a, 3, 5, &|a| println!("{:?}", a));
 }
 
 // https://cs.stackexchange.com/questions/161540/heaps-algorithm-for-k-permutations
@@ -36,7 +36,7 @@ pub fn k_perm(a: &mut [i32], K: usize, n: usize, f: &dyn Fn(&[i32])) {
                 let ank3 = a[N - K - 3];
                 let ank2 = a[N - K - 2];
                 let ank1 = a[N - K - 1];
-                for i in (1..(N - K - 3)).rev() {
+                for i in (2..(N - K - 3)).rev() {
                     a[i] = a[i-1];
                 }
                 a[0] = ank3;

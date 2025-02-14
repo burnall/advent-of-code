@@ -1,5 +1,5 @@
 (ns adv.t11
-  (:require [adv.util :refer [split-lines split]]))
+  (:require [adv.util :refer [split-lines]]))
 
 (def input
   (->> "data/t11.txt"
