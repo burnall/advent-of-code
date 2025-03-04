@@ -47,7 +47,7 @@ fn get_valid_updates(manual: &Manual) -> Vec<&Vec<i32>> {
         .collect()
 }
 
-fn get_middle(v: &&Vec<i32>) -> i32 {
+fn get_middle(v: &Vec<i32>) -> i32 {
     if v.len() % 2 == 0 {
         panic!("Vector should have odd length, {:?}", v);
     }
@@ -57,6 +57,41 @@ fn get_middle(v: &&Vec<i32>) -> i32 {
 pub fn task1() {
    let manual = parse_input("../data/t05.txt");
    let updates = get_valid_updates(&manual);
-   let result: i32 = updates.iter().map(get_middle).sum();
+   let result: i32 = updates.iter().map(|upd| get_middle(*upd)).sum();
+   println!("{:?}", result);
+}
+
+fn get_invalid_updates(manual: &Manual) -> Vec<&Vec<i32>> {
+    manual.updates.iter()
+        .filter(|update| manual.rules.iter().any(|rule| !is_matching_rule(update, rule)))
+        .collect()
+}
+
+fn fix_update(update: &Vec<i32>, rules: &Vec<(i32, i32)>) -> Vec<i32> {
+    let mut upd = update.clone();
+    loop {
+        let mut valid = true;
+        for rule in rules {
+            let idx_left = upd.iter().position(|i| *i == rule.0);
+            let idx_right = upd.iter().position(|i| *i == rule.1);
+            if idx_left != None && idx_right != None && idx_left > idx_right {
+                upd.swap(idx_left.unwrap(), idx_right.unwrap());
+                valid = false;
+                break;
+            }
+        }   
+        if valid {
+            break;
+        } 
+    }
+    upd
+}
+
+pub fn task2() {
+   let manual = parse_input("../data/t05.txt");
+   let updates = get_invalid_updates(&manual);
+   let result: i32 = updates.iter()
+       .map(|update| fix_update(update, &manual.rules))
+       .map(|update| get_middle(&update)).sum();
    println!("{:?}", result);
 }
