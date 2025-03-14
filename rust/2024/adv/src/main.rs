@@ -1,5 +1,5 @@
-use adv::t05;
+use adv::t06;
 
 fn main() {
-    t05::task2();
+    t06::task1();
 }
