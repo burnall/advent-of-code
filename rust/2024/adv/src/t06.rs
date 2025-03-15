@@ -1,7 +1,7 @@
 use crate::util;
 use std::collections::HashSet;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
 enum Dir {
     Up,
     Right,
@@ -27,7 +27,7 @@ impl Dir {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 struct Guard {
     pos: (i32, i32),
     dir: Dir
@@ -83,4 +83,53 @@ pub fn task1() {
    let (map, guard) = parse_input("../data/t06.txt");
    let cnt = walk_and_count(&map, &guard);
    println!("{:?}", cnt);
+}
+
+fn has_loop(map: &Vec<Vec<char>>, guard: &Guard) -> bool {
+    let max_y = map.len() as i32; 
+    let max_x = map[0].len() as i32; 
+    let (mut x, mut y) = guard.pos;
+    let mut dir = guard.dir;
+    let mut visited: HashSet<Guard> = HashSet::new();
+    visited.insert(Guard {pos: (x, y), dir: dir});
+
+    loop {
+        let (dir_x, dir_y) = dir.to_vector();
+        let (x1, y1) = (x + dir_x, y + dir_y);
+        if x1 < 0 || x1 >= max_x || y1 < 0 || y1 >= max_y {
+            return false;
+        }    
+        if map[y1 as usize][x1 as usize] == '#' {
+            dir = dir.next();    
+            continue;
+        }
+        (x, y) = (x1, y1);
+        let guard = Guard {pos: (x, y), dir: dir};
+        if visited.contains(&guard) {
+            return true;
+        } 
+        //println!("{:?}", guard);
+        visited.insert(guard);
+    }
+}    
+
+pub fn task2() {
+   let (mut map, guard) = parse_input("../data/t06.txt");
+
+   let mut loop_cnt = 0;
+   let mut cnt = 0;
+   for y in 0..map.len() {
+        for x in 0..map[y].len() {
+            if map[y][x] == '.' {
+                map[y][x] = '#';
+                if has_loop(&map, &guard) {
+                    loop_cnt += 1;  
+                }
+                map[y][x] = '.';
+                cnt += 1;
+                // println!("({}, {})", cnt, loop_cnt);
+            }
+        }
+    }
+    println!("{:?}", loop_cnt);
 }
