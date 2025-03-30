@@ -1,6 +1,6 @@
 use adv::t10;
 
 fn main() {
-    t10::task1();
+    t10::task2();
 }
 
