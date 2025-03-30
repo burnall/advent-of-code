@@ -1,6 +1,6 @@
-use adv::t09;
+use adv::t10;
 
 fn main() {
-    t09::task1();
+    t10::task1();
 }
 

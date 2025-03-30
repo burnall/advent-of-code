@@ -117,7 +117,6 @@ pub fn task2() {
    let (mut map, guard) = parse_input("../data/t06.txt");
 
    let mut loop_cnt = 0;
-   let mut cnt = 0;
    for y in 0..map.len() {
         for x in 0..map[y].len() {
             if map[y][x] == '.' {
@@ -126,8 +125,6 @@ pub fn task2() {
                     loop_cnt += 1;  
                 }
                 map[y][x] = '.';
-                cnt += 1;
-                // println!("({}, {})", cnt, loop_cnt);
             }
         }
     }
