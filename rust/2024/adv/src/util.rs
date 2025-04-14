@@ -1,4 +1,6 @@
 use std::fs;
+use std::hash::Hash;
+use std::collections::HashMap;
 
 pub fn read_lines(file_name: &str) -> Vec<String> {
     let content = fs::read_to_string(file_name)
@@ -7,4 +9,13 @@ pub fn read_lines(file_name: &str) -> Vec<String> {
         .lines()
         .map(str::to_string)
         .collect()
+}
+
+
+pub fn frequencies<T: Eq + Hash + Clone>(v: &Vec<T>) -> HashMap<T, i64> {
+    let mut map = HashMap::new();
+    for elem in v {
+        *map.entry(elem.clone()).or_insert(0) += 1;
+    }
+    map
 }
