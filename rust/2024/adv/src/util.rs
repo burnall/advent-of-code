@@ -11,6 +11,11 @@ pub fn read_lines(file_name: &str) -> Vec<String> {
         .collect()
 }
 
+pub fn read_all(file_name: &str) -> String {
+    let content = fs::read_to_string(file_name)
+        .expect("Should have been able to read the file");
+    content.to_string()
+}
 
 pub fn frequencies<T: Eq + Hash + Clone>(v: &Vec<T>) -> HashMap<T, i64> {
     let mut map = HashMap::new();

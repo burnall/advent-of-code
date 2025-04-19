@@ -9,7 +9,6 @@ const Y: i64 = 103;
 type Point = (i64, i64);
 type Map = Vec<Vec<i64>>;
 
-// #[derive(Copy, Clone, Hash, PartialEq, Eq, Debug)]
 #[derive(Debug)]
 struct Robot {
     p: Point,
