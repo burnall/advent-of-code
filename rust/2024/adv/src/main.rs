@@ -1,6 +1,6 @@
 use adv::t15;
 
 fn main() {
-    t15::task1();
+    t15::task2();
 }
 
