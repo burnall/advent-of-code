@@ -19,4 +19,15 @@
               rl)
          (apply +))))
 
-(defn similarity-score [pairs])
+(defn part1 [] 
+  (distance input))
+
+(defn similarity-score [pairs]
+  (let [freq1 (frequencies (map first pairs))
+        freq2 (frequencies (map second pairs))]
+    (->> freq1
+         (map (fn [[key cnt]] (* key cnt (freq2 key 0))))
+         (apply +))))
+
+(defn part2 [] 
+  (similarity-score input))
