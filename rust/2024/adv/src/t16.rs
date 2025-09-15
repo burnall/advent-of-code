@@ -70,18 +70,11 @@ fn traverse(map: &Map, point_scores: &mut HashMap<Point, i32>, moves: &Vec<Move>
     let mut point_dirs: HashMap<Point, HashSet<Point>> = HashMap::new();
     for mv in moves {
         let new_point_scores_update = get_new_points_and_scores(map, mv, point_scores);
-        //  println!("new_point_scores, mv {:?}", new_points_scores_update);
         add_point_dirs(&mut point_dirs, &new_point_scores_update, mv.dir);
         merge_scores(&mut new_point_scores, &new_point_scores_update);
-        // let mut moves_update = get_new_moves(&new_scores_update, &mv.dir);
-        // new_moves.append(&mut moves_update);
-        // draw2(map, scores);
     }
     point_scores.extend(new_point_scores.into_iter());
-    println!("new_point_scores {:?}", point_scores);
-
     let new_moves = get_new_moves(&point_dirs);
-    println!("new_moves {:?}", new_moves);
     if new_moves.is_empty() {
         return;
     }
