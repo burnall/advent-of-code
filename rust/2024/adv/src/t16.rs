@@ -1,14 +1,16 @@
 use crate::util;
-use std::collections::HashMap;
 use once_cell::sync::Lazy;
+use std::collections::HashMap;
+use std::collections::HashSet;
 
 type Map = Vec<Vec<char>>;
 type Point = (i32, i32);
 
 #[derive(Debug)]
 struct Move {
-    point: Point, 
-    dir: Point
+    point: Point,
+    dir: Point,
+    cost: i32,
 }
 
 const LEFT: Point = (-1, 0);
@@ -17,12 +19,20 @@ const RIGHT: Point = (1, 0);
 const DOWN: Point = (0, 1);
 const DIRS: [Point; 4] = [LEFT, UP, RIGHT, DOWN];
 
-const PERPENDICULARS: Lazy<HashMap<Point, Vec<Point>>> = Lazy::new(|| 
-    [(LEFT, vec![UP, DOWN]), (RIGHT, vec![UP, DOWN]), 
-    (UP, vec![LEFT, RIGHT]), (DOWN, vec![LEFT, RIGHT])].into_iter().collect());
+const TURNS: Lazy<HashMap<Point, Vec<Point>>> = Lazy::new(|| {
+    [
+        (LEFT, vec![UP, DOWN]),
+        (RIGHT, vec![UP, DOWN]),
+        (UP, vec![LEFT, RIGHT]),
+        (DOWN, vec![LEFT, RIGHT]),
+    ]
+    .into_iter()
+    .collect()
+});
 
 fn parse_map(file_name: &str) -> Map {
-    util::read_lines(file_name).iter()
+    util::read_lines(file_name)
+        .iter()
         .map(|line| line.chars().collect())
         .collect()
 }
@@ -42,79 +52,142 @@ fn draw2(map: &Map, scores: &HashMap<Point, i32>) {
     println!("Map: {:?}", scores);
     for y in 0..map.len() {
         let text = (0..map[y].len())
-            .map(|x| if map[y][x] == '#' { "#".to_string()} else {scores.get(&(x as i32, y as i32)).unwrap_or(&0).to_string()})
+            .map(|x| {
+                if map[y][x] == '#' {
+                    "#".to_string()
+                } else {
+                    scores.get(&(x as i32, y as i32)).unwrap_or(&-1).to_string()
+                }
+            })
             .collect::<Vec<_>>()
             .join(",");
         println!("{:?}", text);
-    }   
+    }
 }
 
-fn traverse(map: &Map, scores: &mut HashMap<Point, i32>, moves: &Vec<Move>) {
-    let mut new_moves = vec![];
-    let mut new_scores = HashMap::new();
-    let mut first_iter = true;
+fn traverse(map: &Map, point_scores: &mut HashMap<Point, i32>, moves: &Vec<Move>) {
+    let mut new_point_scores = HashMap::new();
+    let mut point_dirs: HashMap<Point, HashSet<Point>> = HashMap::new();
     for mv in moves {
-        let new_scores_update = get_line_scores(map, mv, scores, first_iter);
-        println!("New scores update: {:?}", new_scores_update);
-        merge_scores(&mut new_scores, &new_scores_update);
-        let mut moves_update = get_new_moves(&new_scores_update, &mv.dir);
-        new_moves.append(&mut moves_update);
-        first_iter = false;
-        //draw2(map, scores);
-        // break;
+        let new_point_scores_update = get_new_points_and_scores(map, mv, point_scores);
+        //  println!("new_point_scores, mv {:?}", new_points_scores_update);
+        add_point_dirs(&mut point_dirs, &new_point_scores_update, mv.dir);
+        merge_scores(&mut new_point_scores, &new_point_scores_update);
+        // let mut moves_update = get_new_moves(&new_scores_update, &mv.dir);
+        // new_moves.append(&mut moves_update);
+        // draw2(map, scores);
     }
-    println!("New scores: {:?}", new_scores);
-    scores.extend(new_scores.into_iter());
-    println!("New scores 2: {:?}", scores);
-    println!("New moves: {:?}", new_moves);
+    point_scores.extend(new_point_scores.into_iter());
+    println!("new_point_scores {:?}", point_scores);
+
+    let new_moves = get_new_moves(&point_dirs);
+    println!("new_moves {:?}", new_moves);
     if new_moves.is_empty() {
         return;
     }
-    traverse(map, scores, &new_moves);
+    traverse(map, point_scores, &new_moves);
 }
 
-fn get_line_scores(map: &Map, mv: &Move, scores: &HashMap<Point, i32>, turn: bool) -> HashMap<Point, i32> {
-    let base_score = scores.get(&mv.point).unwrap() + if turn {1000} else {0};
-    let mut line_scores = HashMap::new();
+fn get_new_points_and_scores(map: &Map, mv: &Move, scores: &mut HashMap<Point, i32>) -> HashMap<Point, i32> {
+    let base_score = scores.get(&mv.point).unwrap() + mv.cost;
+    let mut points = HashMap::new();
     let mut i = 0;
     let mut next_point = mv.point;
-    println!("get_line_scores, mv {:?}", mv);
-    println!("get_line_scores, scores {:?}", scores);
     loop {
         next_point = (next_point.0 + mv.dir.0, next_point.1 + mv.dir.1);
-        println!("get_line_scores, next_point: {:?}", next_point);
         i += 1;
         if scores.contains_key(&next_point) {
-            continue;
+            return points;
         }
         if map[next_point.1 as usize][next_point.0 as usize] == '#' {
-            return line_scores;
+            return points;
         }
-        line_scores.insert(next_point, base_score + i);
+        points.insert(next_point, base_score + i);
     }
-} 
+}
 
-fn get_new_moves(scores: &HashMap<Point, i32>, dir: &Point) -> Vec<Move> {
-    vec![]
-} 
+fn add_point_dirs(point_dirs: &mut HashMap<Point, HashSet<Point>>, point_scores: &HashMap<Point, i32>, dir: Point) {
+    for &point in point_scores.keys() {
+        point_dirs.entry(point)
+                .and_modify(|dirs| {dirs.insert(dir);})
+                .or_insert(HashSet::from([dir]));
+    }
+}
 
-fn merge_scores(scores: &mut HashMap<Point, i32>, scores_update: &HashMap<Point, i32>) {
-    for (&point, &new_score) in scores_update {
-        scores.entry(point)
+fn merge_scores(point_scores: &mut HashMap<Point, i32>, point_scores_update: &HashMap<Point, i32>) {
+    for (&point, &new_score) in point_scores_update {
+        point_scores.entry(point)
             .and_modify(|score| if new_score < *score {*score = new_score;})
             .or_insert(new_score);
     }
 }
 
+
+fn get_new_moves(point_dirs: &HashMap<Point, HashSet<Point>>) -> Vec<Move> {
+    let mut moves = Vec::new();
+    for (&point, dirs) in point_dirs {
+        if dirs.contains(&LEFT) || dirs.contains(&RIGHT) {   
+            moves.push(Move {
+                point,
+                dir: UP,
+                cost: 1000,
+            });
+            moves.push(Move {
+                point,
+                dir: DOWN,
+                cost: 1000,
+            });
+        }
+        if dirs.contains(&UP) || dirs.contains(&DOWN) {   
+            moves.push(Move {
+                point,
+                dir: LEFT,
+                cost: 1000,
+            });
+            moves.push(Move {
+                point,
+                dir: RIGHT,
+                cost: 1000,
+            });
+        }
+    }
+    moves
+
+}
+
 pub fn task1() {
-    let map = parse_map("../data/t16-2.txt");
+    let map = parse_map("../data/t16.txt");
     let start = get_pos(&map, 'S');
     let end = get_pos(&map, 'E');
-    let mut scores = HashMap::new();
-    scores.insert(start, 0);
-    let first_moves = DIRS.into_iter().map(|dir| Move{point: start, dir: dir}).collect();
-    traverse(&map, &mut scores, &first_moves);
 
-    println!("First moves: {:?}", first_moves);
-    println!("{:?}", draw2(&map, &scores));
+    let mut point_scores = HashMap::new();
+    point_scores.insert(start, 0);
+
+    let first_moves = vec![
+        Move {
+            point: start,
+            dir: RIGHT,
+            cost: 0,
+        },
+        Move {
+            point: start,
+            dir: UP,
+            cost: 1000,
+        },
+        Move {
+            point: start,
+            dir: LEFT,
+            cost: 2000,
+        },
+        Move {
+            point: start,
+            dir: DOWN,
+            cost: 1000,
+        },
+    ];
+    traverse(&map, &mut point_scores, &first_moves);
+
+    // println!("First moves: {:?}", first_moves);
+    println!("{:?}", draw2(&map, &point_scores));
+    println!("Answer is {:?}", point_scores.get(&end).unwrap());
 }
