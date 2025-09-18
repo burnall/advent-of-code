@@ -1,6 +1,6 @@
-use adv::t16;
+use adv::t16_2;
 
 fn main() {
-    t16::task1();
+    t16_2::task2();
 }
 
