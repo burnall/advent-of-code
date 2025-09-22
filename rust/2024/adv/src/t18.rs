@@ -10,15 +10,66 @@ pub fn task1() {
     let mut map = get_initial_map(71);
     add_walls(&mut map, &pairs[0..1024]);
     add_border(&mut map);
+    let is_wall = |point: &Point| map[point.1][point.0] == '#';
 
     let start = (1, 1);
     let end = (SIZE, SIZE);
     let mut scores = HashMap::from([(start, 0)]);
-    traverse(&map, &mut scores, &vec![start]);
+    traverse(is_wall, &mut scores, &vec![start]);
     println!("{:?}", scores.get(&end));
 }
 
-fn traverse(map: &Map, scores: &mut HashMap<Point, i32>, points: &Vec<Point>) {
+pub fn task2() {
+    const SIZE: usize = 71;
+    let pairs = read_pairs("../data/t18.txt");
+    let falls = pairs.iter()
+        .enumerate()
+        .map(|(index, &pair)| (pair, index))
+        .collect::<HashMap<_, _>>();
+    let start = (0, 0);
+    let end = (SIZE - 1, SIZE - 1);
+
+    let is_reachable = |bytes| {
+        let mut scores = HashMap::from([(start, 0)]);
+        let is_wall = |point: &Point| {
+            if point.0 >= SIZE || point.1 >= SIZE {
+                return true;
+            }
+            match falls.get(point) {
+                Some(&index) => index < bytes,
+                None => false,
+            }
+        };
+        traverse(is_wall, &mut scores, &vec![start]);
+        scores.contains_key(&end)
+    };
+        
+    let first_failing_byte = binary_search(0, falls.len(), is_reachable) - 1;
+    println!("{:?} {:?}", first_failing_byte, pairs[first_failing_byte]);
+}
+
+
+fn binary_search<F>(low: usize, high: usize, func: F) -> usize
+where
+    F: Fn(usize) -> bool,
+{
+    let mut low = low;
+    let mut high = high;
+    while low < high {
+        let mid = (low + high) / 2;
+        if func(mid) {
+            low = mid + 1;
+        } else {
+            high = mid;
+        }
+    }
+    low
+}
+
+
+fn traverse<F>(is_wall: F, scores: &mut HashMap<Point, i32>, points: &Vec<Point>) 
+where
+    F: Fn(&Point) -> bool {
     let mut next_points = vec![];
     for point in points {
         let score = *scores.get(point).unwrap();
@@ -27,7 +78,7 @@ fn traverse(map: &Map, scores: &mut HashMap<Point, i32>, points: &Vec<Point>) {
                 (point.0 as i32 + dir.0) as usize,
                 (point.1 as i32 + dir.1) as usize,
             );
-            if map[nb.1][nb.0] == '#' || scores.contains_key(&nb) {
+            if is_wall(point) || scores.contains_key(&nb) {
                 continue;
             }
             scores.insert(nb, score + 1);
@@ -35,7 +86,7 @@ fn traverse(map: &Map, scores: &mut HashMap<Point, i32>, points: &Vec<Point>) {
         }
     }
     if !next_points.is_empty() {
-        traverse(map, scores, &next_points);
+        traverse(is_wall, scores, &next_points);
     }
 }
 
