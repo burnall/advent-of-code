@@ -1,5 +1,5 @@
-use adv::t18;
+use adv::t19;
 
 fn main() {
-    t18::task2();
+    t19::task1();
 }
