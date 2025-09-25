@@ -1,6 +1,6 @@
-use std::{collections::{HashMap, HashSet}};
-use std::hash::{Hash, Hasher};
 use crate::util;
+use std::collections::{HashMap, HashSet};
+use std::hash::{Hash, Hasher};
 
 #[derive(Debug)]
 struct Data {
@@ -12,6 +12,15 @@ struct Data {
 struct Node {
     is_value: bool,
     children: HashMap<char, Box<Node>>,
+}
+
+impl Default for Node {
+    fn default() -> Self {
+        Node {
+            is_value: false,
+            children: HashMap::new(),
+        }
+    }
 }
 
 impl Hash for Node {
@@ -51,10 +60,10 @@ fn build_trie(patterns: &[String]) -> Node {
     for pattern in patterns {
         let mut current = &mut root;
         for ch in pattern.chars() {
-            current = current.children.entry(ch).or_insert(Box::new(Node {
-                is_value: false,
-                children: HashMap::new(),
-            }));
+            current = current
+                .children
+                .entry(ch)
+                .or_insert(Box::new(Node::default()));
         }
         current.is_value = true;
     }
