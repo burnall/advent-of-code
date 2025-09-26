@@ -1,6 +1,6 @@
 use crate::util;
 use std::collections::{HashMap, HashSet};
-use std::hash::{Hash, Hasher};
+use std::time::Instant;
 
 #[derive(Debug)]
 struct Data {
@@ -11,7 +11,7 @@ struct Data {
 #[derive(Debug, PartialEq, Eq)]
 struct Node {
     is_value: bool,
-    children: HashMap<char, Box<Node>>,
+    children: HashMap<char, Node>,
 }
 
 impl Default for Node {
@@ -23,17 +23,17 @@ impl Default for Node {
     }
 }
 
-impl Hash for Node {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.is_value.hash(state);
-        // HashMap doesn't guarantee order, so we must hash in a consistent way
-        let mut sorted: Vec<_> = self.children.iter().collect();
-        sorted.sort_by_key(|&(k, _)| k);
-        for (k, v) in sorted {
-            k.hash(state);
-            v.hash(state);
-        }
-    }
+#[derive(Debug)]
+struct State {
+    id: usize,
+    transitions: HashMap<char, usize>,
+    is_terminal: bool,
+}
+
+#[derive(Debug)]
+struct StateMachine {
+    states: HashMap<usize, State>,
+    start_state: usize,
 }
 
 pub fn task1() {
@@ -43,13 +43,20 @@ pub fn task1() {
         designs: lines[2..].to_vec(),
     };
     let root = build_trie(&data.patterns);
-    // println!("{:?}", is_matched(&root, "ruwrrbbrgrbruw"));
+    let machine = trie_to_states(&root);
+    //println!("States {:#?}", machine);
+
+    let start = Instant::now();
+    // r, wr, b, g, bwu, rb, gb, br
+    // println!("{:?}", is_matched(&machine, "bwurbbwurb"));
     let count = data
         .designs
         .iter()
-        .filter(|design| is_matched(&root, design))
+        .filter(|design| is_matched(&machine, design))
         .count();
-    println!("Count is {:?}", count);
+    let duration = start.elapsed();
+
+    println!("Count is {:?} in {:?}", count, duration);
 }
 
 fn build_trie(patterns: &[String]) -> Node {
@@ -63,31 +70,67 @@ fn build_trie(patterns: &[String]) -> Node {
             current = current
                 .children
                 .entry(ch)
-                .or_insert(Box::new(Node::default()));
-        }
+                .or_insert(Node::default());
+        }   
         current.is_value = true;
     }
     root
 }
 
-fn is_matched(trie: &Node, s: &str) -> bool {
-    println!("Matching {:?}", s);
-    let mut nodes = HashSet::from([trie]);
+fn trie_to_states(trie: &Node) -> StateMachine {
+    let final_state = State {
+        id: 0,
+        transitions: HashMap::new(),
+        is_terminal: true,
+    };
+    let mut states = HashMap::from([(0, final_state)]);
+    StateMachine { 
+        start_state: process_node(trie, &mut states, &mut 1),
+        states
+    }
+}
+
+fn process_node(node: &Node, states: &mut HashMap<usize, State>, next_id: &mut usize) -> usize {
+    if node.children.is_empty() {
+        return 0;
+    }
+
+    let id = *next_id;
+    *next_id += 1;  
+    let mut transitions = HashMap::new();
+    for (ch, child) in &node.children {
+        let child_id = process_node(child, states, next_id);
+        transitions.insert(*ch, child_id);
+    }
+    let state = State {
+        id,
+        transitions,
+        is_terminal: node.is_value,
+    };
+    states.insert(id, state);
+    id
+}
+
+fn is_matched(machine: &StateMachine, s: &str) -> bool {
+    let StateMachine {start_state, states} = machine;
+    let mut current_states = HashSet::from([*start_state]);
     for ch in s.chars() {
-        let mut new_nodes = HashSet::new();
-        for current in nodes {
-            if let Some(child) = current.children.get(&ch) {
-                new_nodes.insert(&**child);
-                if child.is_value {
-                    new_nodes.insert(trie);
+        let mut new_states = HashSet::new();
+        for state_id in &current_states {
+            let state = states.get(state_id).unwrap();
+            if let Some(next_state_id) = state.transitions.get(&ch) {
+                new_states.insert(*next_state_id);
+                let next_state = states.get(next_state_id).unwrap();
+                if next_state.is_terminal {
+                    new_states.insert(*start_state);
                 }
             }
         }
-        if new_nodes.is_empty() {
+        if new_states.is_empty() {
             return false;
         }
-        nodes = new_nodes;
-        //println!("Nodes len {:?}", nodes.len());
+        current_states = new_states;
     }
-    nodes.iter().any(|node| node.is_value)
+    current_states.iter().any(|state_id| machine.states.get(state_id).unwrap().is_terminal)
 }
+
