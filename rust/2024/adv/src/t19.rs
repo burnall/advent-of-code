@@ -25,7 +25,6 @@ impl Default for Node {
 
 #[derive(Debug)]
 struct State {
-    id: usize,
     transitions: HashMap<char, usize>,
     is_terminal: bool,
 }
@@ -59,6 +58,25 @@ pub fn task1() {
     println!("Count is {:?} in {:?}", count, duration);
 }
 
+pub fn task2() {
+        let lines = util::read_lines("../data/t19.txt");
+    let data = Data {
+        patterns: lines[0].split(", ").map(String::from).collect(),
+        designs: lines[2..].to_vec(),
+    };
+    let root = build_trie(&data.patterns);
+    let machine = trie_to_states(&root);
+
+    // println!("Count {:#?}", count_matches(&machine, "rrbgbr"));
+    let count = data
+        .designs
+        .iter()
+        .map(|design| count_matches(&machine, design))
+        .sum::<usize>();
+    
+    println!("Count {:#?}", count);
+}
+
 fn build_trie(patterns: &[String]) -> Node {
     let mut root = Node {
         is_value: false,
@@ -67,11 +85,8 @@ fn build_trie(patterns: &[String]) -> Node {
     for pattern in patterns {
         let mut current = &mut root;
         for ch in pattern.chars() {
-            current = current
-                .children
-                .entry(ch)
-                .or_insert(Node::default());
-        }   
+            current = current.children.entry(ch).or_insert(Node::default());
+        }
         current.is_value = true;
     }
     root
@@ -79,14 +94,13 @@ fn build_trie(patterns: &[String]) -> Node {
 
 fn trie_to_states(trie: &Node) -> StateMachine {
     let final_state = State {
-        id: 0,
         transitions: HashMap::new(),
         is_terminal: true,
     };
     let mut states = HashMap::from([(0, final_state)]);
-    StateMachine { 
+    StateMachine {
         start_state: process_node(trie, &mut states, &mut 1),
-        states
+        states,
     }
 }
 
@@ -96,14 +110,13 @@ fn process_node(node: &Node, states: &mut HashMap<usize, State>, next_id: &mut u
     }
 
     let id = *next_id;
-    *next_id += 1;  
+    *next_id += 1;
     let mut transitions = HashMap::new();
     for (ch, child) in &node.children {
         let child_id = process_node(child, states, next_id);
         transitions.insert(*ch, child_id);
     }
     let state = State {
-        id,
         transitions,
         is_terminal: node.is_value,
     };
@@ -112,8 +125,12 @@ fn process_node(node: &Node, states: &mut HashMap<usize, State>, next_id: &mut u
 }
 
 fn is_matched(machine: &StateMachine, s: &str) -> bool {
-    let StateMachine {start_state, states} = machine;
+    let StateMachine {
+        start_state,
+        states,
+    } = machine;
     let mut current_states = HashSet::from([*start_state]);
+
     for ch in s.chars() {
         let mut new_states = HashSet::new();
         for state_id in &current_states {
@@ -131,6 +148,42 @@ fn is_matched(machine: &StateMachine, s: &str) -> bool {
         }
         current_states = new_states;
     }
-    current_states.iter().any(|state_id| machine.states.get(state_id).unwrap().is_terminal)
+    current_states
+        .iter()
+        .any(|state_id| machine.states.get(state_id).unwrap().is_terminal)
 }
 
+fn count_matches(machine: &StateMachine, s: &str) -> usize {
+    let StateMachine {
+        start_state,
+        states,
+    } = machine;
+    let mut state_counts = HashMap::from([(*start_state, 1)]);
+
+    for ch in s.chars() {
+        if state_counts.is_empty() {
+            return 0;
+        }
+        let mut new_state_counts = HashMap::new();
+        for (state_id, count) in &state_counts {
+            let state = states.get(state_id).unwrap();
+            if let Some(next_state_id) = state.transitions.get(&ch) {
+                increase_count(&mut new_state_counts, *next_state_id, *count);
+                let next_state = states.get(next_state_id).unwrap();
+                if next_state.is_terminal {
+                    increase_count(&mut new_state_counts, *start_state, *count);
+                }
+            }
+        }
+        state_counts = new_state_counts;
+    }
+    state_counts
+        .iter()
+        .filter(|(state_id, _)| states.get(state_id).unwrap().is_terminal)
+        .map(|(_, count)| *count)
+        .sum::<usize>()
+}
+
+fn increase_count(map: &mut HashMap<usize, usize>, key: usize, delta: usize) {
+    map.entry(key).and_modify(|n| *n += delta).or_insert(delta);
+}
