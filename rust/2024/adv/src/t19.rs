@@ -59,7 +59,7 @@ pub fn task1() {
 }
 
 pub fn task2() {
-        let lines = util::read_lines("../data/t19.txt");
+    let lines = util::read_lines("../data/t19.txt");
     let data = Data {
         patterns: lines[0].split(", ").map(String::from).collect(),
         designs: lines[2..].to_vec(),
@@ -73,7 +73,7 @@ pub fn task2() {
         .iter()
         .map(|design| count_matches(&machine, design))
         .sum::<usize>();
-    
+
     println!("Count {:#?}", count);
 }
 
