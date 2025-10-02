@@ -51,7 +51,6 @@ pub fn task1() {
             let seq2 = gen_sequence(&seq, &DIR_TO_POINT);
             let seq3 = gen_sequence(&seq2, &DIR_TO_POINT);
             println!("Hmm {} {}", get_numeric_part(code), seq3.len());
-            println!("{}", seq3);
             get_numeric_part(code) * (seq3.len() as i32)
         })
         .sum::<i32>();
