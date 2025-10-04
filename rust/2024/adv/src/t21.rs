@@ -40,10 +40,8 @@ static DIR_TO_POINT: Lazy<HashMap<char, Point>> = Lazy::new(|| {
 +---+---+---+ */
 
 pub fn task1() {
-    // let sequences: Vec<String> = CODES.iter().map(|code| gen_sequence(code)).collect();
-    let v = vec!["379A"]; 
-    // let v = vec!["029A", "980A", "179A", "456A", "379A"]; 
-    let answer = v
+    // let v = vec!["029A", "980A", "179A", "456A", "379A"];
+    let answer = CODES
         .iter()
         .map(|code| {
             let seq = gen_sequence(code, &DIGIT_TO_POINT);

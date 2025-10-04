@@ -54,7 +54,7 @@ pub fn task1() {
     let mut cache: HashMap<(char, char), Vec<String>> = HashMap::new();
     let mut cache_dir: HashMap<(char, char), Vec<String>> = HashMap::new();
 
-    let v = vec!["029A", "980A", "179A", "456A", "379A"];
+    // let v = vec!["029A", "980A", "179A", "456A", "379A"];
     let answer = CODES
         .iter()
         .map(|code| {

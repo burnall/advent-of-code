@@ -1,5 +1,5 @@
-use adv::t21_2;
+use adv::t21_3;
 
 fn main() {
-    t21_2::task1();
+    t21_3::task2_1();
 }
