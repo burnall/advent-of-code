@@ -22,8 +22,10 @@ pub fn task2() {
             price += delta as i64;
             queue.push(delta);
             if i > 2 {
-                let values = stat.entry(queue.hash()).or_insert(HashMap::new());
-                values.entry(n).or_insert(price);    
+                stat.entry(queue.hash())
+                    .or_insert(HashMap::new())
+                    .entry(n)
+                    .or_insert(price);
             }
         }
     }
