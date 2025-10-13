@@ -24,3 +24,4 @@ pub mod t21_3;
 pub mod t22;
 pub mod t23;
 pub mod t24;
+pub mod t25;

@@ -144,7 +144,6 @@ impl Device {
          */
     fn validate(&self) {
         let mut idx = 0;
-        let Device {inputs, initial_wires} = self;
         if !self.has_wire(&get_id('x', 0), &get_id('y', 0), Oper::Xor, &get_id('z', 0)) {
             println!("No z00");
         }
@@ -152,7 +151,7 @@ impl Device {
         println!("00: {:?}", a);
         loop {
             idx += 1;
-            if !initial_wires.contains_key(&get_id('x', idx)) {
+            if !self.initial_wires.contains_key(&get_id('x', idx)) {
                 break;
             }
             let b = self.get_output(&get_id('x', idx), &get_id('y', idx), Oper::Xor);
@@ -190,7 +189,6 @@ impl Device {
     }
 
     fn get_output(&self, in1: &str, in2: &str, oper: Oper) -> Option<&Gate> {
-        let mut idx = 0;
         match &self.inputs.get(in1) {
             Some(gates) => gates
                 .iter()
