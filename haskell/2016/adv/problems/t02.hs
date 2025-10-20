@@ -23,8 +23,6 @@ read_code startPos = foldl' go startPos
   where
     go pos dir = Map.findWithDefault pos (pos, dir) moves2
 
--- turns Map.! (dir, turn)
-
 moves =
   Map.fromList
     [ (('1', 'R'), '2'),
