@@ -38,7 +38,6 @@ parseRoom line = Room n (read sid :: Int) cs
   where pattern = "([a-z-]+)-([0-9]+)\\[([a-z]+)\\]"
         (_, _, _, [n, sid, cs]) = line =~ pattern :: (String, String, String, [String])
 
-
 crc :: Room -> String
 crc room = room & name & MS.fromList & MS.deleteAll '-' & MS.toOccurList & sortedDesc & map fst & take 5
   where sortedDesc = sortOn (\(l, n) -> (Down n, l))
