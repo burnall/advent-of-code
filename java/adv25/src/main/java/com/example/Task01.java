@@ -27,10 +27,9 @@ public class Task01 {
         AtomicInteger pos = new AtomicInteger(50);
 
         return cmds.stream().map(cmd -> cmd.clicks() * (cmd.clockwise() ? 1 : -1))
-                .map(i-> {
+                .map(i -> {
                     int p = pos.get();
                     pos.set(mod100(p + i));
-                    System.out.printf("%d %d %d\n", p, i, turns(p, i));
                     return turns(p, i);
                 })
                 .mapToLong(Integer::intValue)
