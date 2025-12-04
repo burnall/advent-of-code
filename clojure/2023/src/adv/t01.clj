@@ -45,13 +45,11 @@
                          {}
                          (map-indexed vector s))]
     (parse-long (str fst lst))))
-
+    
 (defn f2 []
   (->> input
        (map get-two-digits-another-way)
        (apply +)))
-
-
 
 
 

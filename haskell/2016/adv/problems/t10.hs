@@ -63,7 +63,7 @@ applyMove moves (state, pins) pin = (newState, newPins')
 getInitialState :: [Instr] -> PinState
 getInitialState instrs = foldl applyInit Map.empty inits
   where
-    inits = [i | i@(Init _ _) <- instrs]
+    inits = [i | i@Init{}  <- instrs]
     applyInit state init = resolveState state (uid init) (val init)
 
 resolveState :: PinState -> String -> Int -> PinState
