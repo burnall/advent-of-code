@@ -24,7 +24,16 @@
 (defn task1 [rs]
   (->> rs
        (mapcat (partial filter (comp invalid? str)))
-       ));(apply +)))
+       (apply +)))
 
 (task1 [(range 1 100)])
+(task1 input)
 
+(defn task2 [rs]
+  (->> rs
+       (mapcat (partial filter (comp invalid2? str)))
+       (apply +)))
+
+(comment
+  (task2 [(range 1 200)])
+  (task2 input))
