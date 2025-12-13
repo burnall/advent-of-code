@@ -13,7 +13,7 @@ public class Task03 {
 
     private static long part1(List<String> lines) {
         return lines.stream()
-                .map(Task03::fingMax2)
+                .map(Task03::findMax2)
                 .mapToLong(Long::parseLong)
                 .sum();
     }
@@ -26,7 +26,7 @@ public class Task03 {
                 .sum();
     }
 
-    public static String fingMax2(String s) {
+    public static String findMax2(String s) {
         int len = s.length();
         char c1 = '\0';
         char c0 = '\0';
