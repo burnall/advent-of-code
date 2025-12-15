@@ -9,20 +9,23 @@
 (defn find-max-seq [n s]
   (let [len (count s)
         go (fn [chars i]
-          (let [idx (- n (min n (- len i)))]
-          ))
-        ]
-    (reduce go [] (range len))))
+             (let [ch (get s i)
+                   j (- n (min n (- len i)))
+                   idx (first (filter #(> (int ch) (int (chars %))) (range j n)))]
+               (if (nil? idx)
+                 chars
+                 (vec (take n (concat (subvec chars 0 idx)
+                                      [ch]
+                                      (repeat \0)))))))]
+    (reduce go (vec (repeat n \0)) (range len))))
 
-        ;; for (int i = 0; i < len; i++) {
-        ;;     char ch = s.charAt(i);
-        ;;     boolean found = false;
-        ;;     for  (int j = n - Integer.min(n, len - i); j < n; j++) {
-        ;;         if (found) {
-        ;;             v[j] = '\0';
-        ;;         } else if (ch > v[j] ) {
-        ;;             v[j] = ch;
-        ;;             found = true;
-        ;;         }
-        ;;     }
-        ;; }
+(defn part [n]
+  (->> input
+       (map (partial find-max-seq n))
+       (map (partial apply str))
+       (map parse-long)
+       (reduce +)))
+
+(comment
+  (part 2)
+  (part 12))
