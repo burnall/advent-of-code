@@ -26,7 +26,7 @@ public class Task06 {
 
     private static Data parseData(List<String> lines) {
         String lastLine = lines.removeLast();
-        List<Operation> ops = Arrays.asList(lastLine.split("\\s+")).stream()
+        List<Operation> ops = Arrays.stream(lastLine.split("\\s+"))
                 .map(s -> s.equals("+") ? Operation.ADD : Operation.MULTIPLY)
                 .toList();
         return new Data(lines, ops);
