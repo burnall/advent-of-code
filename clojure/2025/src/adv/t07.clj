@@ -4,7 +4,9 @@
 (def input
   (->> "resources/t07.txt"
        (slurp)
-       (split-lines)))
+       (split-lines)
+       (mapv vec)
+       ))
 
 (defn find-s [m]
   (for [y (range (count m))
@@ -21,31 +23,48 @@
         :when (= p \S)]
     [y x]))
 
-(defn map-indexes [row indexes]
-  (map #(row %) indexes))
-
 (defn handle-row [[cnt indexes] row] 
-  [(+ cnt (count (filter #(= (row %) \^) indexes)))
-   (map #(if (= (row %) \^)
-              #{(dec x) (inc x)}
-              #{x})
-           indexes))
-   ]
-  )
+  [(->> indexes
+        (filter #(= (row %) \^))
+        (count)
+        (+ cnt))
+   (->> indexes
+        (map #(if (= (row %) \^) 
+                #{(dec %) (inc %)} 
+                #{%}))
+        (apply clojure.set/union))])
 
-(defn part1 [m s]
-  (->> m
-       (drop (first s))
-       (reduce (fn [[cnt indexes] row] 
-                 (mapcat 
-                  (fn [x] 
-                     (if (= (row x) \^)
-                       [(dec x) (inc x)])         ) 
-                         row)
-                 )
-               [0 #{(second s)}])
-  ))
+(defn part1 [m]
+  (let [[y x] (first (find-s' m))]
+    (->> m
+         (drop y)
+         (reduce handle-row
+                 [0 #{x}])
+         (first)
+    )))
+
+(defn handle-row2 [counter row]
+  (->> counter
+       (keys)
+       (map (fn [x] 
+              (let [cnt (counter x)]
+                (if (= (row x) \^)
+                  {(dec x) cnt, (inc x) cnt}
+                  {x cnt}))))
+       (apply merge-with +)))
+
+(defn part2 [m]
+  (let [[y x] (first (find-s' m))]
+     (->> m
+          (drop y)
+          (reduce handle-row2
+                  {x 1})
+          (vals)
+          (apply +))))
 
 (comment
   input
-  (find-s' input))
+  (find-s' input)
+  (part1 input)
+  (part2 input)
+  )
