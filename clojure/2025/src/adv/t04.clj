@@ -19,18 +19,40 @@
        (filter #(= \@ (get-in m %)))
        (count)))
 
+(defn get-accessible [m]
+  (let [ps (for [x (range (count (m 0)))
+                  y (range (count m))]
+              [y x])]
+     (->> ps
+          (filter #(= \@ (get-in m %)))
+          (filter #(> 4 (count-nbs m %))))))
+
 (defn task1 [m]
-  (let [ps (for [x (range (count (m 0))) 
-                 y (range (count m))]
-               [y x])]
-    (->> ps
-         (filter #(= \@ (get-in m %)))
-         (map (partial count-nbs m))
-         (filter #(< % 4))
-         (count)
-         )))
+  (->> m
+       (get-accessible)
+       (count)))
+
+(defn access [m]
+  (when-let [ps (seq (get-accessible m))] 
+    (reduce #(assoc-in % %2 \. ) m ps)))
+
+(defn access-all [m]
+  (if-let [m' (access m)]
+    (recur m')
+    m))  
+
+(defn count-rolls [m]
+  (->> m 
+       (mapcat identity)
+       (filter (partial = \@))
+       (count)))
+
+(defn task2 [m]
+  (- (count-rolls m)
+     (count-rolls (access-all m))))
 
 (comment
   (task1 input)
+  (task2 input)
   )
 
